@@ -9,6 +9,7 @@ import Missing from './components/Missing';
 import Unauthorized from './components/Unauthorized';
 import Lounge from './components/Lounge';
 import Activated from './components/Activated';
+import VerifyEmail from './components/VerifyEmail';
 import ChangePassword from './components/ChangePassword';
 import LinkPage from './components/LinkPage';
 import RequireAuth from './components/RequireAuth';
@@ -31,6 +32,7 @@ function App() {
         <Route path="linkpage" element={<LinkPage />} />
         <Route path="reset_password" element={<NewPassword />} />
         <Route path="activated" element={<Activated />} />
+        <Route path="verify_email" element={<VerifyEmail />} />
         <Route path="change_password" element={<ChangePassword />} />
         <Route path="unauthorized" element={<Unauthorized />} />
 

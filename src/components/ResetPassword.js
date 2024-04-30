@@ -1,15 +1,15 @@
-import { useRef, useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import axiosPrivate from '../api/axios';
 const RESET_PASSWORD_URL = '/api/auth/password_reset';
+const SEND_EMAIL_URL = '/api/email/send';
+
 
 
 const ResetPassword = () => {
-    const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [success, setSuccess] = useState('');
-    const [uid64, setUid64] = useState('');
     const [errMsg, setErrMsg] = useState('');
 
     const handleSubmit = async (e) => {
@@ -17,10 +17,15 @@ const ResetPassword = () => {
 
         try {
             const response = await axiosPrivate.post(RESET_PASSWORD_URL, { email: email });
-            if (response?.status === 200) {
-                setSuccess(true);
-                setUid64(response.data.uid64)
-            }
+            const uid64 = response.data.uid64
+            const baseUrl = window.location.origin;
+            let msg = `Click the following link to change your password: ${baseUrl}/change_password?uid64=${uid64}`
+            await axiosPrivate.post(SEND_EMAIL_URL, {
+                'to': email,
+                'subject': "Change your password",
+                'msg': msg
+            });
+            setSuccess(true);
 
         } catch (err) {
             if (!err?.response) {
@@ -41,7 +46,7 @@ const ResetPassword = () => {
                 success ?
                     <section>
                         <h1>Success!</h1>
-                        <p>Change your password by clicking: <Link to={`/change_password?uid64=${uid64}`}><a>change password</a></Link></p>
+                        <p>Check your email to reset password</p>
                         <p>
                             <Link to="/login">Sign In</Link>
                         </p>

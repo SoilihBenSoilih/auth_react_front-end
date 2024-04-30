@@ -1,13 +1,14 @@
 import { useRef, useState, useEffect } from "react";
 import { faCheck, faTimes, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { axiosPrivate } from '../api/axios';
-import {validatePassword } from "../utils/password"
+import axiosPrivate from '../api/axios';
+import { validatePassword } from "../utils/password"
 import { Link } from "react-router-dom";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const REGISTER_URL = '/api/auth/register';
 const ACTIVATION_URL = '/api/auth/verify_email';
+const SEND_EMAIL_URL = '/api/email/send';
 
 const ROLES = {
     'User': 2001,
@@ -42,7 +43,6 @@ const Register = () => {
 
     const [errMsg, setErrMsg] = useState('');
     const [success, setSuccess] = useState(false);
-    const [activationLink, setActivationLink] = useState('');
 
     useEffect(() => {
         emailRef.current.focus();
@@ -74,9 +74,7 @@ const Register = () => {
         }
     }
 
-    const handleActivation = async (e) => {
-        await axiosPrivate.get(activationLink)
-    }
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -87,7 +85,7 @@ const Register = () => {
         }
         try {
 
-            const roles = selectedRoles.map(role => ROLES[role])
+            const roles = selectedRoles.map(role => ROLES[role]);
             let response = await axiosPrivate.post(REGISTER_URL, {
                 email: email,
                 firstName: firstName,
@@ -95,27 +93,28 @@ const Register = () => {
                 password: pwd,
                 roles: JSON.stringify(roles)
             });
-            if (response.status === 201){
-                response = await axiosPrivate.post(ACTIVATION_URL, {
-                    email: email
-                });
-                if (response?.status === 200){
-                    const url = response.data.url
-                    setActivationLink(url)
-                    setSuccess(true);
-                    setEmail('');
-                    setFirstName('');
-                    setLastName('');
-                    setPwd('');
-                    setMatchPwd('');
-                    setSelectedRoles([]);
-                }
-            }
-            
+            response = await axiosPrivate.post(ACTIVATION_URL, {
+                email: email
+            });
+            const uid64 = response.data.uid64;
+            const baseUrl = window.location.origin;
+            await axiosPrivate.post(SEND_EMAIL_URL, {
+                'to': email,
+                'subject': "Activation de votre compte AuthComplete",
+                'msg': `Cliquez sur le lien qui suit pour activer votre compte: ${baseUrl}/verify_email?uid64=${uid64}`
+            });
+            setSuccess(true);
+            setEmail('');
+            setFirstName('');
+            setLastName('');
+            setPwd('');
+            setMatchPwd('');
+            setSelectedRoles([]);
+
         } catch (err) {
             if (!err?.response) {
                 setErrMsg('No Server Response');
-            } else if (err.response.status === 201) {
+            } else if (err.response) {
                 const firstKey = Object.keys(err.response.data)[0];
                 const firstErrorMessage = `${firstKey}: ${err.response.data[firstKey]}`;
                 setErrMsg(firstErrorMessage);
@@ -131,9 +130,9 @@ const Register = () => {
             {success ? (
                 <section>
                     <h1>Success!</h1>
-                    <p>Activate your account by clicking: <Link to="/activated"><a onClick={handleActivation}>confirm email</a></Link></p>
+                    <p>Check your emails to verify your account</p>
                     <p>
-                        <Link to="/">Sign In</Link>
+                        <Link to="/login">Sign In</Link>
                     </p>
                 </section>
             ) : (
