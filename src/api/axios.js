@@ -1,5 +1,5 @@
 import axios from 'axios';
-const baseURL = 'https://bendrick.pythonanywhere.com'
+const baseURL = 'http://54.234.147.153:8080'
 
 
 
