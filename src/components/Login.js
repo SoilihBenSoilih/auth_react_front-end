@@ -2,11 +2,12 @@ import { useRef, useState, useEffect } from 'react';
 import useAuth from '../hooks/useAuth';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 
-import axiosPrivate from '../api/axios';
+import useApiService from '../service/apiService';
 const LOGIN_URL = '/api/auth/login';
 
 
 const Login = () => {
+    const { post } = useApiService()
     const { setAuth } = useAuth();
 
     const navigate = useNavigate();
@@ -32,7 +33,7 @@ const Login = () => {
         e.preventDefault();
 
         try {
-            const response = await axiosPrivate.post(LOGIN_URL,
+            const response = await post(LOGIN_URL,
                 JSON.stringify({ email: email, password: password }),
                 {
                     headers: { 'Content-Type': 'application/json' },
